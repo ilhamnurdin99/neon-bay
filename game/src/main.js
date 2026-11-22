@@ -128,8 +128,7 @@ function runGame() {
     }
   }
 
-  function handleActions(actions) {
-    const clicked = input.takeClick();
+  function handleActions(actions, clicked) {
     if (actions !== 0 || clicked) audio.unlock();
     if (actions & ACTION_MUTE) {
       ui.muted = audio.toggleMute();
@@ -182,10 +181,11 @@ function runGame() {
     }
   }
 
-  function stepGame(actions) {
+  function stepGame(actions, clicked) {
     const state = world.state;
     const mouse = input.mouse();
-    const shootAt = mouse.down && state.player.inCar === null ? renderer.screenToWorld(state, mouse.x, mouse.y) : null;
+    // A click shoots at that point even if the button is already up again by this frame.
+    const shootAt = (mouse.down || clicked) && state.player.inCar === null ? renderer.screenToWorld(state, mouse.x, mouse.y) : null;
     const controls = {
       move: input.move(),
       drive: input.drive(),
@@ -221,11 +221,14 @@ function runGame() {
   function frame(now) {
     requestAnimationFrame(frame);
     const actions = input.takeActions();
-    handleActions(actions);
+    const clicked = input.takeClick();
+    // A click that started the game (or closed a panel) must not also fire the pistol.
+    const wasPlaying = screen === SCREEN_PLAY;
+    handleActions(actions, clicked);
     if (screen === SCREEN_TITLE) {
       world.step(STEP, IDLE_CONTROLS);
     } else if (screen === SCREEN_PLAY) {
-      stepGame(actions);
+      stepGame(actions, wasPlaying ? clicked : false);
     }
     // The engine hums with the player's car; the siren wails when the law is close.
     const player = world.state.player;

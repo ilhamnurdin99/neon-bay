@@ -80,8 +80,8 @@ export function createAudio() {
     osc.frequency.value = freq;
     const gain = context.createGain();
     gain.gain.setValueAtTime(0, start);
-    gain.linearRampToValueAtTime(volume, start + 0.01);
-    gain.exponentialRampToValueAtTime(0.001, start + duration);
+    gain.gain.linearRampToValueAtTime(volume, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
     osc.connect(gain);
     gain.connect(master);
     osc.start(start);
